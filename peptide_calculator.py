@@ -34,7 +34,7 @@ if mode == "Plan for target concentration":
     peptide = st.sidebar.selectbox("Select peptide", list(predefined_half_lives.keys()), index=0)
     half_life = st.sidebar.number_input(
         "Half-life (days)", min_value=0.1,
-        value=predefined_half_lives[peptide] if predefined_half_lives[peptide] else 1.0
+        value=float(predefined_half_lives[peptide]) if predefined_half_lives[peptide] else 1.0
     )
     target_conc = st.sidebar.number_input("Target concentration (mg)", min_value=0.1, value=5.0)
     dosing_interval = st.sidebar.number_input("Dosing interval (days)", min_value=0.5, value=1.0)
