@@ -50,10 +50,10 @@ concentration[0] = 0  # start at 0 mg
         concentration[0] += target_conc  # Instant loading dose
 
     for t in days:
-        start_day = dosing_interval if include_loading_dose else 0
-        for d in np.arange(start_day, t + 0.1, dosing_interval):
-            if d <= t:
-                concentration[t] += maintenance_dose * np.exp(-k * (t - d))
+                start_day = dosing_interval if include_loading_dose else 0
+                for d in np.arange(start_day, t + 0.1, dosing_interval):
+                        if d <= t:
+                                concentration[t] += maintenance_dose * np.exp(-k * (t - d))
 
     # Display results
     st.subheader("💡 Dosing Recommendation")
