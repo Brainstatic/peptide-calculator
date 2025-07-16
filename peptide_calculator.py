@@ -86,7 +86,7 @@ else:
         half_life = st.sidebar.number_input(
             f"Half-life (days) {i+1}",
             min_value=0.1,
-            value=predefined_half_lives[selected] if predefined_half_lives[selected] else 1.0,
+            value=float(predefined_half_lives[selected]) if predefined_half_lives[selected] else 1.0,
             key=f"hl{i}"
         )
         dose = st.sidebar.number_input(f"Dose (mg) {i+1}", min_value=0.0, value=1.0, key=f"dose{i}")
