@@ -36,8 +36,8 @@ if mode == "Plan for target concentration":
         "Half-life (days)", min_value=0.1,
         value=float(predefined_half_lives[peptide]) if predefined_half_lives[peptide] else 1.0
     )
-    target_conc = st.sidebar.number_input("Target concentration (mg)", min_value=0.1, value=5.0)
-    dosing_interval = st.sidebar.number_input("Dosing interval (days)", min_value=0.5, value=1.0)
+    target_conc = st.sidebar.number_input("Target concentration (mg)", min_value=0.1, value=2.0)
+    dosing_interval = st.sidebar.number_input("Dosing interval (days)", min_value=0.5, value=7.0)
     include_loading_dose = st.sidebar.checkbox("Include loading dose?", value=True)
 
     k = LN2 / half_life
