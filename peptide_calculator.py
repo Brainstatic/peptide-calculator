@@ -1,7 +1,8 @@
+
 import streamlit as st
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.graph_objs as go
 
 # Constants
 LN2 = np.log(2)
@@ -33,7 +34,8 @@ if mode == "Plan for target concentration":
     st.sidebar.markdown("## Target Planning Inputs")
     peptide = st.sidebar.selectbox("Select peptide", list(predefined_half_lives.keys()), index=0)
     half_life = st.sidebar.number_input(
-        "Half-life (days)", min_value=0.1,
+        "Half-life (days)",
+        min_value=0.1,
         value=float(predefined_half_lives[peptide]) if predefined_half_lives[peptide] else 1.0
     )
     target_conc = st.sidebar.number_input("Target concentration (mg)", min_value=0.1, value=2.0)
@@ -43,38 +45,28 @@ if mode == "Plan for target concentration":
     k = LN2 / half_life
     maintenance_dose = target_conc * dosing_interval * k
 
-    # Build simulation
     concentration = np.zeros_like(days, dtype=float)
-concentration[0] = 0  # start at 0 mg
+    concentration[0] = 0  # start at 0 mg
+
     if include_loading_dose:
         concentration[0] += target_conc  # Instant loading dose
 
     for t in days:
-                start_day = dosing_interval if include_loading_dose else 0
-                for d in np.arange(start_day, t + 0.1, dosing_interval):
-                        if d <= t:
-                                concentration[t] += maintenance_dose * np.exp(-k * (t - d))
+        start_day = dosing_interval if include_loading_dose else 0
+        for d in np.arange(start_day, t + 0.1, dosing_interval):
+            if d <= t:
+                concentration[t] += maintenance_dose * np.exp(-k * (t - d))
 
-    # Display results
     st.subheader("💡 Dosing Recommendation")
     if include_loading_dose:
         st.markdown(f"- **Loading dose:** {target_conc:.2f} mg at day 0")
     st.markdown(f"- **Maintenance dose:** {maintenance_dose:.2f} mg every {dosing_interval} day(s)")
 
-    fig, ax = plt.subplots()
-    ax.plot(days, concentration, label="Predicted Concentration")
-    ax.axhline(y=target_conc, color='gray', linestyle='--', label="Target")
-    ax.set_xlabel("Days")
-    ax.set_ylabel("Concentration (mg)")
-    ax.set_title("Planned Concentration Curve")
-    ax.legend()
-    ax.grid(True)
-    import plotly.graph_objs as go
-fig_plotly = go.Figure()
-fig_plotly.add_trace(go.Scatter(x=days, y=concentration, mode='lines', name='Predicted Concentration'))
-fig_plotly.add_trace(go.Scatter(x=days, y=[target_conc]*len(days), mode='lines', name='Target', line=dict(dash='dash')))
-fig_plotly.update_layout(title='Planned Concentration Curve', xaxis_title='Days', yaxis_title='Concentration (mg)', hovermode='x')
-st.plotly_chart(fig_plotly, use_container_width=True)
+    fig_plotly = go.Figure()
+    fig_plotly.add_trace(go.Scatter(x=days, y=concentration, mode='lines', name='Predicted Concentration'))
+    fig_plotly.add_trace(go.Scatter(x=days, y=[target_conc]*len(days), mode='lines', name='Target', line=dict(dash='dash')))
+    fig_plotly.update_layout(title='Planned Concentration Curve', xaxis_title='Days', yaxis_title='Concentration (mg)', hovermode='x')
+    st.plotly_chart(fig_plotly, use_container_width=True)
 
     df = pd.DataFrame({"Day": days, "Concentration (mg)": concentration})
     st.dataframe(df)
@@ -110,31 +102,22 @@ else:
         return conc
 
     df = pd.DataFrame({"Day": days})
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig = go.Figure()
 
     for name, hl, dose, interval, offset in peptides:
         conc = calculate_concentration(hl, dose, interval, offset)
         label = name
         if compare_mode == "Compare":
-            ax.plot(days, conc, label=label)
+            fig.add_trace(go.Scatter(x=days, y=conc, mode='lines', name=label))
         else:
             df[label] = conc
 
     if compare_mode == "Accumulate":
         df["Total"] = df[[p[0] for p in peptides]].sum(axis=1)
-        ax.plot(df["Day"], df["Total"], label="Total", linewidth=2)
+        fig.add_trace(go.Scatter(x=df["Day"], y=df["Total"], mode='lines', name="Total"))
 
-    ax.set_title("Peptide Concentration Over Time")
-    ax.set_xlabel("Day")
-    ax.set_ylabel("Concentration (mg)")
-    ax.legend()
-    ax.grid(True)
-    import plotly.graph_objs as go
-fig_plotly = go.Figure()
-fig_plotly.add_trace(go.Scatter(x=days, y=concentration, mode='lines', name='Predicted Concentration'))
-fig_plotly.add_trace(go.Scatter(x=days, y=[target_conc]*len(days), mode='lines', name='Target', line=dict(dash='dash')))
-fig_plotly.update_layout(title='Planned Concentration Curve', xaxis_title='Days', yaxis_title='Concentration (mg)', hovermode='x')
-st.plotly_chart(fig_plotly, use_container_width=True)
+    fig.update_layout(title="Peptide Concentration Over Time", xaxis_title="Day", yaxis_title="Concentration (mg)", hovermode="x")
+    st.plotly_chart(fig, use_container_width=True)
 
     st.dataframe(df)
     csv = df.to_csv(index=False).encode("utf-8")
