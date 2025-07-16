@@ -49,7 +49,8 @@ if mode == "Plan for target concentration":
         concentration[0] += target_conc  # Instant loading dose
 
     for t in days:
-        for d in np.arange(0, t + 0.1, dosing_interval):
+        start_day = dosing_interval if include_loading_dose else 0
+        for d in np.arange(start_day, t + 0.1, dosing_interval):
             if d <= t:
                 concentration[t] += maintenance_dose * np.exp(-k * (t - d))
 
