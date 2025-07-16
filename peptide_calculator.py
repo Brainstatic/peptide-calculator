@@ -65,7 +65,14 @@ if mode == "Plan for target concentration":
     fig_plotly = go.Figure()
     fig_plotly.add_trace(go.Scatter(x=days, y=concentration, mode='lines', name='Predicted Concentration'))
     fig_plotly.add_trace(go.Scatter(x=days, y=[target_conc]*len(days), mode='lines', name='Target', line=dict(dash='dash')))
-    fig_plotly.update_layout(title='Planned Concentration Curve', xaxis_title='Days', yaxis_title='Concentration (mg)', hovermode='x')
+    fig_plotly.update_layout(
+        title='Planned Concentration Curve',
+        xaxis_title='Days',
+        yaxis_title='Concentration (mg)',
+        hovermode='x',
+        yaxis_tickformat='.2f',
+        xaxis_tickformat='.0f'
+    )
     st.plotly_chart(fig_plotly, use_container_width=True)
 
     df = pd.DataFrame({"Day": days, "Concentration (mg)": concentration})
@@ -82,15 +89,16 @@ else:
     for i in range(num_peptides):
         st.sidebar.markdown(f"### Peptide #{i+1}")
         selected = st.sidebar.selectbox(f"Select peptide {i+1}", list(predefined_half_lives.keys()), key=f"name{i}")
+        peptide_label = selected
         half_life = st.sidebar.number_input(
-            f"Half-life (days) {i+1}",
+            f"{peptide_label} - Half-life (days)",
             min_value=0.1,
             value=float(predefined_half_lives[selected]) if predefined_half_lives[selected] else 1.0,
             key=f"hl{i}"
         )
-        dose = st.sidebar.number_input(f"Dose (mg) {i+1}", min_value=0.0, value=1.0, key=f"dose{i}")
-        interval = st.sidebar.number_input(f"Dosing interval (days) {i+1}", min_value=1, value=7, key=f"int{i}")
-        offset = st.sidebar.number_input(f"Start delay (days) {i+1}", min_value=0, value=0, key=f"offset{i}")
+        dose = st.sidebar.number_input(f"{peptide_label} - Dose (mg)", min_value=0.0, value=1.0, key=f"dose{i}")
+        interval = st.sidebar.number_input(f"{peptide_label} - Dosing interval (days)", min_value=1, value=7, key=f"int{i}")
+        offset = st.sidebar.number_input(f"{peptide_label} - Start delay (days)", min_value=0, value=0, key=f"offset{i}")
         peptides.append((selected, half_life, dose, interval, offset))
 
     def calculate_concentration(hl, dose, interval, offset):
@@ -116,7 +124,14 @@ else:
         df["Total"] = df[[p[0] for p in peptides]].sum(axis=1)
         fig.add_trace(go.Scatter(x=df["Day"], y=df["Total"], mode='lines', name="Total"))
 
-    fig.update_layout(title="Peptide Concentration Over Time", xaxis_title="Day", yaxis_title="Concentration (mg)", hovermode="x")
+    fig.update_layout(
+        title="Peptide Concentration Over Time",
+        xaxis_title="Day",
+        yaxis_title="Concentration (mg)",
+        hovermode="x",
+        yaxis_tickformat='.2f',
+        xaxis_tickformat='.0f'
+    )
     st.plotly_chart(fig, use_container_width=True)
 
     st.dataframe(df)
