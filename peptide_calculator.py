@@ -24,7 +24,7 @@ st.title("🧪 Peptide Concentration Planner & Plotter")
 # Sidebar - Simulation parameters
 mode = st.sidebar.radio("Mode", ["Visualize dosing schedule", "Plan for target concentration"])
 
-duration_weeks = st.sidebar.number_input("Simulation duration (weeks)", min_value=1, value=12)
+duration_weeks = st.sidebar.number_input("Simulation duration (weeks)", min_value=1, value=8)
 total_days = duration_weeks * 7
 days = np.arange(0, total_days + 1)
 
@@ -45,6 +45,7 @@ if mode == "Plan for target concentration":
 
     # Build simulation
     concentration = np.zeros_like(days, dtype=float)
+concentration[0] = 0  # start at 0 mg
     if include_loading_dose:
         concentration[0] += target_conc  # Instant loading dose
 
@@ -68,7 +69,12 @@ if mode == "Plan for target concentration":
     ax.set_title("Planned Concentration Curve")
     ax.legend()
     ax.grid(True)
-    st.pyplot(fig)
+    import plotly.graph_objs as go
+fig_plotly = go.Figure()
+fig_plotly.add_trace(go.Scatter(x=days, y=concentration, mode='lines', name='Predicted Concentration'))
+fig_plotly.add_trace(go.Scatter(x=days, y=[target_conc]*len(days), mode='lines', name='Target', line=dict(dash='dash')))
+fig_plotly.update_layout(title='Planned Concentration Curve', xaxis_title='Days', yaxis_title='Concentration (mg)', hovermode='x')
+st.plotly_chart(fig_plotly, use_container_width=True)
 
     df = pd.DataFrame({"Day": days, "Concentration (mg)": concentration})
     st.dataframe(df)
@@ -123,7 +129,12 @@ else:
     ax.set_ylabel("Concentration (mg)")
     ax.legend()
     ax.grid(True)
-    st.pyplot(fig)
+    import plotly.graph_objs as go
+fig_plotly = go.Figure()
+fig_plotly.add_trace(go.Scatter(x=days, y=concentration, mode='lines', name='Predicted Concentration'))
+fig_plotly.add_trace(go.Scatter(x=days, y=[target_conc]*len(days), mode='lines', name='Target', line=dict(dash='dash')))
+fig_plotly.update_layout(title='Planned Concentration Curve', xaxis_title='Days', yaxis_title='Concentration (mg)', hovermode='x')
+st.plotly_chart(fig_plotly, use_container_width=True)
 
     st.dataframe(df)
     csv = df.to_csv(index=False).encode("utf-8")
